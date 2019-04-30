@@ -843,6 +843,42 @@
         };
 
         /**
+         * Utility function to create an HTML element with attributes and styles.
+         *
+         * @function #createElement
+         * @memberOf Highcharts
+         * @param {String} namespaceURI - The Namespace.
+         * @param {String} tag - The Tag name.
+         * @param {Object} [attribs] - Attributes as an object of key-value pairs.
+         * @param {CSSObject} [styles] - Styles as an object of key-value pairs.
+         * @param {Object} [parent] - The parent HTML object.
+         * @param {Boolean} [nopad=false] - If true, remove all padding, border and
+         *    margin.
+         * @returns {HTMLDOMElement} The created DOM element.
+         */
+        H.createElementNS = function (namespaceURI, tag, attribs, styles, parent, nopad) {
+            var el = doc.createElementNS(namespaceURI, tag),
+                css = H.css;
+            if (attribs) {
+                H.extend(el, attribs);
+            }
+            if (nopad) {
+                css(el, {
+                    padding: 0,
+                    border: 'none',
+                    margin: 0
+                });
+            }
+            if (styles) {
+                css(el, styles);
+            }
+            if (parent) {
+                parent.appendChild(el);
+            }
+            return el;
+        };
+
+        /**
          * Extend a prototyped class by new members.
          *
          * @function #extendClass
@@ -2462,6 +2498,8 @@
             color = H.color,
             css = H.css,
             createElement = H.createElement,
+            createElementNS = H.createElementNS,
+            SVG_NS = H.SVG_NS,
             defined = H.defined,
             deg2rad = H.deg2rad,
             destroyObjectProperties = H.destroyObjectProperties,
@@ -4326,7 +4364,7 @@
                 container.appendChild(element);
 
                 // For browsers other than IE, add the namespace attribute (#1978)
-                if (container.innerHTML.indexOf('xmlns') === -1) {
+                if (!container.hasAttribute('xmlns')) {
                     attr(element, 'xmlns', this.SVG_NS);
                 }
 
@@ -4490,7 +4528,7 @@
              * @param {string} nodeName - The node name, for example `rect`, `g` etc.
              * @returns {SVGElement} The generated SVGElement.
              */
-            createElement: function(nodeName) {
+            createElement: function (nodeName) {
                 var wrapper = new this.Element();
                 wrapper.init(this, nodeName);
                 return wrapper;
@@ -5257,7 +5295,7 @@
              *         Show and hide grouped objects
              */
             g: function(name) {
-                var elem = this.createElement('g');
+                var elem = this.createElement('g');                
                 return name ? elem.attr({
                     'class': 'highcharts-' + name
                 }) : elem;
@@ -6265,6 +6303,8 @@
         /* eslint max-len: ["warn", 80, 4] */
         var attr = H.attr,
             createElement = H.createElement,
+            createElementNS = H.createElementNS,
+            SVG_NS = H.SVG_NS,
             css = H.css,
             defined = H.defined,
             each = H.each,
@@ -6693,6 +6733,8 @@
             VMLElement,
 
             createElement = H.createElement,
+            createElementNS = H.createElementNS,
+            SVG_NS = H.SVG_NS,
             css = H.css,
             defined = H.defined,
             deg2rad = H.deg2rad,
@@ -16193,7 +16235,7 @@
                 var chartX,
                     chartY,
                     ePos;
-
+                var normalizeHandler = charts[0].options.normalizeHandler;
                 // IE normalizing
                 e = e || win.event;
                 if (!e.target) {
@@ -16217,11 +16259,13 @@
                     chartX = ePos.pageX - chartPosition.left;
                     chartY = ePos.pageY - chartPosition.top;
                 }
-
-                return extend(e, {
-                    chartX: Math.round(chartX),
-                    chartY: Math.round(chartY)
-                });
+                extend(e, {
+                    chartX: chartX,
+                    chartY: chartY
+                })
+                if (normalizeHandler)
+                    return normalizeHandler(e);
+                return e;
             },
 
             /**
@@ -16427,7 +16471,7 @@
              *
              * @private
              */
-            runPointActions: function(e, p) {
+            runPointActions: function (e, p) {
                 var pointer = this,
                     chart = pointer.chart,
                     series = chart.series,
@@ -16458,7 +16502,6 @@
                 hoverSeries = hoverData.hoverSeries;
                 followPointer = hoverSeries && hoverSeries.tooltipOptions.followPointer;
                 useSharedTooltip = shared && hoverSeries && !hoverSeries.noSharedTooltip;
-
                 // Refresh tooltip for kdpoint if new hover point or tooltip was hidden
                 // #3926, #4200
                 if (
@@ -18589,6 +18632,8 @@
             doc = H.doc,
             Axis = H.Axis, // @todo add as requirement
             createElement = H.createElement,
+            createElementNS = H.createElementNS,
+            SVG_NS = H.SVG_NS,
             defaultOptions = H.defaultOptions,
             discardElement = H.discardElement,
             charts = H.charts,
@@ -19476,8 +19521,8 @@
              * Set the {@link Chart.container|chart container's} class name, in
              * addition to `highcharts-container`. 
              */
-            setClassName: function(className) {
-                this.container.className = 'highcharts-container ' + (className || '');
+            setClassName: function (className) {
+                this.container.setAttribute("class", 'highcharts-container ' + (className || ''));
             },
 
             /**
@@ -19571,8 +19616,9 @@
                  * @memberOf Highcharts.Chart
                  * @type {HTMLDOMElement}
                  */
-                container = createElement(
-                    'div', {
+                container = createElementNS(
+                    SVG_NS,
+                    'g', {
                         id: containerId
                     },
                     containerStyle,
@@ -25483,6 +25529,8 @@
             Axis = H.Axis,
             Chart = H.Chart,
             createElement = H.createElement,
+            createElementNS = H.createElementNS,
+            SVG_NS = H.SVG_NS,
             css = H.css,
             defined = H.defined,
             each = H.each,
@@ -29708,6 +29756,8 @@
         var addEvent = H.addEvent,
             Chart = H.Chart,
             createElement = H.createElement,
+            createElementNS = H.createElementNS,
+            SVG_NS = H.SVG_NS,
             css = H.css,
             defaultOptions = H.defaultOptions,
             defaultPlotOptions = H.defaultPlotOptions,
