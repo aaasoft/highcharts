@@ -1293,6 +1293,43 @@
             }
             return el;
         };
+		
+        /**
+         * Utility function to create an HTML element with attributes and styles.
+         *
+         * @function #createElement
+         * @memberOf Highcharts
+         * @param {String} namespaceURI - The Namespace.
+         * @param {String} tag - The Tag name.
+         * @param {Object} [attribs] - Attributes as an object of key-value pairs.
+         * @param {CSSObject} [styles] - Styles as an object of key-value pairs.
+         * @param {Object} [parent] - The parent HTML object.
+         * @param {Boolean} [nopad=false] - If true, remove all padding, border and
+         *    margin.
+         * @returns {HTMLDOMElement} The created DOM element.
+         */
+        H.createElementNS = function (namespaceURI, tag, attribs, styles, parent, nopad) {
+            var el = doc.createElementNS(namespaceURI, tag),
+                css = H.css;
+            if (attribs) {
+                H.extend(el, attribs);
+            }
+            if (nopad) {
+                css(el, {
+                    padding: 0,
+                    border: 'none',
+                    margin: 0
+                });
+            }
+            if (styles) {
+                css(el, styles);
+            }
+            if (parent) {
+                parent.appendChild(el);
+            }
+            return el;
+        };
+		
         // eslint-disable-next-line valid-jsdoc
         /**
          * Extend a prototyped class by new members.
@@ -3403,7 +3440,7 @@
          */
         /* eslint-disable no-invalid-this, valid-jsdoc */
         var animObject = U.animObject, attr = U.attr, defined = U.defined, destroyObjectProperties = U.destroyObjectProperties, erase = U.erase, extend = U.extend, isArray = U.isArray, isNumber = U.isNumber, isObject = U.isObject, isString = U.isString, objectEach = U.objectEach, pick = U.pick, pInt = U.pInt, splat = U.splat;
-        var SVGElement, SVGRenderer, addEvent = H.addEvent, animate = H.animate, charts = H.charts, color = H.color, css = H.css, createElement = H.createElement, deg2rad = H.deg2rad, doc = H.doc, hasTouch = H.hasTouch, isFirefox = H.isFirefox, isMS = H.isMS, isWebKit = H.isWebKit, merge = H.merge, noop = H.noop, removeEvent = H.removeEvent, stop = H.stop, svg = H.svg, SVG_NS = H.SVG_NS, symbolSizes = H.symbolSizes, win = H.win;
+        var SVGElement, SVGRenderer, addEvent = H.addEvent, animate = H.animate, charts = H.charts, color = H.color, css = H.css, createElement = H.createElement, createElementNS = H.createElementNS, deg2rad = H.deg2rad, doc = H.doc, hasTouch = H.hasTouch, isFirefox = H.isFirefox, isMS = H.isMS, isWebKit = H.isWebKit, merge = H.merge, noop = H.noop, removeEvent = H.removeEvent, stop = H.stop, svg = H.svg, SVG_NS = H.SVG_NS, symbolSizes = H.symbolSizes, win = H.win;
         /**
          * The SVGElement prototype is a JavaScript wrapper for SVG elements used in the
          * rendering layer of Highcharts. Combined with the {@link
@@ -5482,7 +5519,7 @@
                 // flipped and text appear outside labels, buttons, tooltip etc (#3482)
                 attr(container, 'dir', 'ltr');
                 // For browsers other than IE, add the namespace attribute (#1978)
-                if (container.innerHTML.indexOf('xmlns') === -1) {
+                if (!container.hasAttribute('xmlns')) {
                     attr(element, 'xmlns', this.SVG_NS);
                 }
                 // object properties
@@ -7501,7 +7538,7 @@
          *
          * */
         var attr = U.attr, defined = U.defined, extend = U.extend, pick = U.pick, pInt = U.pInt;
-        var createElement = H.createElement, css = H.css, isFirefox = H.isFirefox, isMS = H.isMS, isWebKit = H.isWebKit, SVGElement = H.SVGElement, SVGRenderer = H.SVGRenderer, win = H.win;
+        var createElement = H.createElement, createElementNS = H.createElementNS, SVG_NS = H.SVG_NS, css = H.css, isFirefox = H.isFirefox, isMS = H.isMS, isWebKit = H.isWebKit, SVGElement = H.SVGElement, SVGRenderer = H.SVGRenderer, win = H.win;
         /* eslint-disable valid-jsdoc */
         // Extend SvgElement for useHTML option.
         extend(SVGElement.prototype, /** @lends SVGElement.prototype */ {
@@ -21185,6 +21222,7 @@
              *         A browser event with extended properties `chartX` and `chartY`.
              */
             normalize: function (e, chartPosition) {
+				var normalizeHandler = charts[0].options.normalizeHandler;
                 var ePos;
                 // iOS (#2757)
                 ePos = e.touches ?
@@ -21204,10 +21242,13 @@
                     chartX /= containerScaling.scaleX;
                     chartY /= containerScaling.scaleY;
                 }
-                return extend(e, {
-                    chartX: Math.round(chartX),
-                    chartY: Math.round(chartY)
-                });
+                extend(e, {
+                    chartX: chartX,
+                    chartY: chartY
+                })
+                if (normalizeHandler)
+                    return normalizeHandler(e);
+                return e;
             },
             /**
              * Get the click position in terms of axis values.
@@ -23819,7 +23860,7 @@
         */
         var animObject = U.animObject, attr = U.attr, defined = U.defined, discardElement = U.discardElement, erase = U.erase, extend = U.extend, isArray = U.isArray, isNumber = U.isNumber, isObject = U.isObject, isString = U.isString, numberFormat = U.numberFormat, objectEach = U.objectEach, pick = U.pick, pInt = U.pInt, relativeLength = U.relativeLength, setAnimation = U.setAnimation, splat = U.splat, syncTimeout = U.syncTimeout;
         var addEvent = H.addEvent, animate = H.animate, doc = H.doc, Axis = H.Axis, // @todo add as requirement
-        createElement = H.createElement, defaultOptions = H.defaultOptions, charts = H.charts, css = H.css, find = H.find, fireEvent = H.fireEvent, Legend = H.Legend, // @todo add as requirement
+        createElement = H.createElement, createElementNS = H.createElementNS, SVG_NS = H.SVG_NS, defaultOptions = H.defaultOptions, charts = H.charts, css = H.css, find = H.find, fireEvent = H.fireEvent, Legend = H.Legend, // @todo add as requirement
         marginNames = H.marginNames, merge = H.merge, Pointer = H.Pointer, // @todo add as requirement
         removeEvent = H.removeEvent, seriesTypes = H.seriesTypes, win = H.win;
         /* eslint-disable no-invalid-this, valid-jsdoc */
@@ -24743,7 +24784,7 @@
              * @return {void}
              */
             setClassName: function (className) {
-                this.container.className = 'highcharts-container ' + (className || '');
+				this.container.setAttribute("class", 'highcharts-container ' + (className || ''));
             },
             /**
              * Get the containing element, determine the size and create the inner
@@ -24823,7 +24864,9 @@
                  * @name Highcharts.Chart#container
                  * @type {Highcharts.HTMLDOMElement}
                  */
-                container = createElement('div', {
+                container = container = createElementNS(
+                    SVG_NS,
+                    'g', {
                     id: containerId
                 }, containerStyle, renderTo);
                 chart.container = container;
@@ -32760,7 +32803,7 @@
          *
          * */
         var defined = U.defined, erase = U.erase, extend = U.extend, isArray = U.isArray, isNumber = U.isNumber, isObject = U.isObject, isString = U.isString, objectEach = U.objectEach, pick = U.pick, relativeLength = U.relativeLength, setAnimation = U.setAnimation, splat = U.splat;
-        var addEvent = H.addEvent, animate = H.animate, Axis = H.Axis, Chart = H.Chart, createElement = H.createElement, css = H.css, fireEvent = H.fireEvent, merge = H.merge, Point = H.Point, Series = H.Series, seriesTypes = H.seriesTypes;
+        var addEvent = H.addEvent, animate = H.animate, Axis = H.Axis, Chart = H.Chart, createElement = H.createElement, createElementNS = H.createElementNS, SVG_NS = H.SVG_NS, css = H.css, fireEvent = H.fireEvent, merge = H.merge, Point = H.Point, Series = H.Series, seriesTypes = H.seriesTypes;
         /* eslint-disable valid-jsdoc */
         /**
          * Remove settings that have not changed, to avoid unnecessary rendering or
@@ -39028,7 +39071,7 @@
          *        Event that occured.
          */
         var defined = U.defined, extend = U.extend, isArray = U.isArray, isObject = U.isObject, objectEach = U.objectEach, pick = U.pick;
-        var addEvent = H.addEvent, Chart = H.Chart, createElement = H.createElement, css = H.css, defaultOptions = H.defaultOptions, defaultPlotOptions = H.defaultPlotOptions, fireEvent = H.fireEvent, hasTouch = H.hasTouch, Legend = H.Legend, merge = H.merge, Point = H.Point, Series = H.Series, seriesTypes = H.seriesTypes, svg = H.svg, TrackerMixin;
+        var addEvent = H.addEvent, Chart = H.Chart, createElement = H.createElement, createElementNS = H.createElementNS, SVG_NS = H.SVG_NS, css = H.css, defaultOptions = H.defaultOptions, defaultPlotOptions = H.defaultPlotOptions, fireEvent = H.fireEvent, hasTouch = H.hasTouch, Legend = H.Legend, merge = H.merge, Point = H.Point, Series = H.Series, seriesTypes = H.seriesTypes, svg = H.svg, TrackerMixin;
         /* eslint-disable valid-jsdoc */
         /**
          * TrackerMixin for points and graphs.
