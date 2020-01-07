@@ -4678,7 +4678,7 @@
                     duration: duration || 150,
                     complete: function () {
                         // #3088, assuming we're only using this for tooltips
-                        elemWrapper.attr({ y: -9999 });
+                        //elemWrapper.attr({ y: -9999 });
                     }
                 });
             },
@@ -12854,7 +12854,7 @@
                         tick.isNewLabel = false;
                     }
                     else {
-                        label.attr('y', -9999); // #1338
+                        //label.attr('y', -9999); // #1338
                         tick.isNewLabel = true;
                     }
                 }
@@ -18309,7 +18309,7 @@
                         axisTitle.isNew = false;
                     }
                     else {
-                        axisTitle.attr('y', -9999);
+                        //axisTitle.attr('y', -9999);
                         axisTitle.isNew = true;
                     }
                 }
@@ -38690,7 +38690,7 @@
                             dataLabel.moved = true;
                         }
                         else if (dataLabel) {
-                            dataLabel.attr({ y: -9999 });
+                            //dataLabel.attr({ y: -9999 });
                         }
                     }
                     // Clear for update
